@@ -4,12 +4,21 @@ A clean DAT workspace inspired by a reverse-engineering assignment.
 
 This repository contains two pieces:
 
-- `dat_stream_studio/`: PyQt5 desktop app with stream shortcuts, authorized proxy profiles, a tabbed embedded browser, persistent local browser profile, and PyInstaller packaging.
+- `dat_stream_studio/`: Qt desktop app with stream shortcuts, authorized proxy profiles, a tabbed embedded browser, persistent local browser profile, plus a no-install Tkinter fallback.
 - `dat_companion_extension/`: Manifest V3 Chrome companion extension for DAT shortcuts and local DAT cookie count/clear tools.
 
 The project intentionally avoids shared cookies, embedded DAT/Auth0 sessions, GitHub token cookie sync, automatic cookie merge/push, and UI suppression. Use only DAT accounts, sessions, and proxies you are authorized to use.
 
 ## Desktop App
+
+No-install fallback:
+
+```powershell
+cd dat_stream_studio
+py -3 lite_app.py
+```
+
+Full embedded-browser mode:
 
 ```powershell
 cd dat_stream_studio
@@ -22,7 +31,7 @@ Build an EXE:
 
 ```powershell
 cd dat_stream_studio
-.\build.ps1
+.\build_lite.ps1
 ```
 
 ## Companion Extension

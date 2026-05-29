@@ -4,7 +4,7 @@ Clean desktop rebuild based on the analyzed app architecture.
 
 This version keeps the useful structure:
 
-- single-window PyQt desktop app
+- single-window Qt desktop app
 - login/unlock screen
 - stream selector
 - authorized proxy support per stream
@@ -23,6 +23,15 @@ It intentionally does not include:
 - multi-screen/session bypass logic
 
 ## Run
+
+No-install runnable fallback:
+
+```powershell
+cd dat_stream_studio
+py -3 lite_app.py
+```
+
+Full embedded-browser app:
 
 ```powershell
 cd dat_stream_studio
@@ -56,6 +65,15 @@ Example stream:
 Use only proxies/accounts you are authorized to use.
 
 ## Build EXE
+
+No-install fallback EXE:
+
+```powershell
+cd dat_stream_studio
+.\build_lite.ps1
+```
+
+Full embedded-browser EXE:
 
 ```powershell
 cd dat_stream_studio

@@ -7,31 +7,69 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from PyQt5.QtCore import QUrl, Qt
-from PyQt5.QtGui import QCloseEvent, QFont, QIcon
-from PyQt5.QtNetwork import QNetworkProxy
-from PyQt5.QtWebEngineWidgets import QWebEngineProfile, QWebEngineView
-from PyQt5.QtWidgets import (
-    QAction,
-    QApplication,
-    QCheckBox,
-    QFrame,
-    QGridLayout,
-    QGroupBox,
-    QHBoxLayout,
-    QLabel,
-    QLineEdit,
-    QMainWindow,
-    QMessageBox,
-    QPushButton,
-    QStackedWidget,
-    QStatusBar,
-    QTabWidget,
-    QTextEdit,
-    QToolBar,
-    QVBoxLayout,
-    QWidget,
-)
+try:
+    from PySide6.QtCore import QUrl, Qt
+    from PySide6.QtGui import QAction, QCloseEvent, QFont, QIcon
+    from PySide6.QtNetwork import QNetworkProxy
+    from PySide6.QtWebEngineCore import QWebEngineProfile
+    from PySide6.QtWebEngineWidgets import QWebEngineView
+    from PySide6.QtWidgets import (
+        QApplication,
+        QCheckBox,
+        QFrame,
+        QGridLayout,
+        QGroupBox,
+        QHBoxLayout,
+        QLabel,
+        QLineEdit,
+        QMainWindow,
+        QMessageBox,
+        QPushButton,
+        QStackedWidget,
+        QStatusBar,
+        QTabWidget,
+        QTextEdit,
+        QToolBar,
+        QVBoxLayout,
+        QWidget,
+    )
+
+    QT_BINDING = "PySide6"
+except ImportError:
+    try:
+        from PyQt5.QtCore import QUrl, Qt
+        from PyQt5.QtGui import QCloseEvent, QFont, QIcon
+        from PyQt5.QtNetwork import QNetworkProxy
+        from PyQt5.QtWebEngineWidgets import QWebEngineProfile, QWebEngineView
+        from PyQt5.QtWidgets import (
+            QAction,
+            QApplication,
+            QCheckBox,
+            QFrame,
+            QGridLayout,
+            QGroupBox,
+            QHBoxLayout,
+            QLabel,
+            QLineEdit,
+            QMainWindow,
+            QMessageBox,
+            QPushButton,
+            QStackedWidget,
+            QStatusBar,
+            QTabWidget,
+            QTextEdit,
+            QToolBar,
+            QVBoxLayout,
+            QWidget,
+        )
+
+        QT_BINDING = "PyQt5"
+    except ImportError:
+        from lite_app import main
+
+        if __name__ == "__main__":
+            raise SystemExit(main())
+        raise RuntimeError("Qt bindings are not installed. Run lite_app.py instead.")
 
 
 APP_NAME = "DAT Stream Studio"
@@ -135,7 +173,7 @@ class LoginPage(QWidget):
         self.on_login = on_login
         self.username = QLineEdit()
         self.password = QLineEdit()
-        self.password.setEchoMode(QLineEdit.Password)
+        self.password.setEchoMode(password_echo_mode())
         self.remember = QCheckBox("Remember profile name")
         self.notes = QTextEdit()
         self.notes.setReadOnly(True)
@@ -376,7 +414,7 @@ class BrowserWorkspace(QWidget):
             "Clear Browser Data",
             "Clear cookies and cache for the embedded browser profile?",
         )
-        if answer != QMessageBox.Yes:
+        if answer != message_box_yes():
             return
         profile = QWebEngineProfile.defaultProfile()
         profile.cookieStore().deleteAllCookies()
@@ -385,12 +423,12 @@ class BrowserWorkspace(QWidget):
 
     def _apply_proxy(self, proxy: ProxyConfig | None) -> None:
         if not proxy or not proxy.enabled:
-            QNetworkProxy.setApplicationProxy(QNetworkProxy(QNetworkProxy.NoProxy))
+            QNetworkProxy.setApplicationProxy(QNetworkProxy(no_proxy_type()))
             self.status.setText("Connection: direct")
             return
 
         qproxy = QNetworkProxy()
-        qproxy.setType(QNetworkProxy.HttpProxy)
+        qproxy.setType(http_proxy_type())
         qproxy.setHostName(proxy.host)
         qproxy.setPort(proxy.port)
         if proxy.username:
@@ -462,7 +500,7 @@ class MainWindow(QMainWindow):
         self.workspace.open_stream(stream)
 
     def closeEvent(self, event: QCloseEvent) -> None:
-        QNetworkProxy.setApplicationProxy(QNetworkProxy(QNetworkProxy.NoProxy))
+        QNetworkProxy.setApplicationProxy(QNetworkProxy(no_proxy_type()))
         event.accept()
 
 
@@ -560,11 +598,38 @@ def load_stylesheet() -> str:
     """
 
 
+def password_echo_mode():
+    return getattr(QLineEdit, "Password", QLineEdit.EchoMode.Password)
+
+
+def message_box_yes():
+    return getattr(QMessageBox, "Yes", QMessageBox.StandardButton.Yes)
+
+
+def no_proxy_type():
+    return getattr(QNetworkProxy, "NoProxy", QNetworkProxy.ProxyType.NoProxy)
+
+
+def http_proxy_type():
+    return getattr(QNetworkProxy, "HttpProxy", QNetworkProxy.ProxyType.HttpProxy)
+
+
+def high_dpi_attribute(name: str):
+    if hasattr(Qt, name):
+        return getattr(Qt, name)
+    application_attribute = getattr(Qt, "ApplicationAttribute", None)
+    if application_attribute and hasattr(application_attribute, name):
+        return getattr(application_attribute, name)
+    return None
+
+
 def main() -> int:
-    QApplication.setAttribute(Qt.AA_EnableHighDpiScaling)
-    QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps)
+    for attribute_name in ("AA_EnableHighDpiScaling", "AA_UseHighDpiPixmaps"):
+        attribute = high_dpi_attribute(attribute_name)
+        if attribute is not None:
+            QApplication.setAttribute(attribute)
     app = QApplication(sys.argv)
-    app.setApplicationName(APP_NAME)
+    app.setApplicationName(f"{APP_NAME} ({QT_BINDING})")
     app.setStyleSheet(load_stylesheet())
     window = MainWindow()
     window.show()
