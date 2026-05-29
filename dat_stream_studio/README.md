@@ -4,7 +4,7 @@ Clean desktop rebuild based on the analyzed app architecture.
 
 This version keeps the useful structure:
 
-- single-window Qt desktop app
+- single-window PyQt6/Qt WebEngine desktop app
 - login/unlock screen
 - stream selector
 - authorized proxy support per stream
@@ -39,6 +39,8 @@ py -3 -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
 .\.venv\Scripts\python.exe app.py
 ```
+
+If `app.py` cannot import PyQt6/PyQt6-WebEngine, it automatically opens the lightweight Tkinter fallback so the assignment can still be demonstrated.
 
 ## Configure Streams
 

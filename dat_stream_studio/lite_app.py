@@ -29,7 +29,7 @@ class DatStreamLite(tk.Tk):
         self.title(f"{APP_NAME} {APP_VERSION}")
         self.geometry("1120x720")
         self.minsize(920, 620)
-        self.configure(bg="#f6f7fb")
+        self.configure(bg="#f4f6f8")
         self._configure_style()
         self._build_shell()
         self._show_login()
@@ -37,13 +37,21 @@ class DatStreamLite(tk.Tk):
     def _configure_style(self) -> None:
         style = ttk.Style(self)
         style.theme_use("clam")
-        style.configure("TFrame", background="#f6f7fb")
+        style.configure("TFrame", background="#f4f6f8")
         style.configure("Panel.TFrame", background="#ffffff", relief="flat")
-        style.configure("TLabel", background="#f6f7fb", foreground="#17202a", font=("Segoe UI", 10))
+        style.configure("Sidebar.TFrame", background="#111827", relief="flat")
+        style.configure("Metric.TFrame", background="#f8fafc", relief="flat")
+        style.configure("TLabel", background="#f4f6f8", foreground="#17202a", font=("Segoe UI", 10))
         style.configure("Panel.TLabel", background="#ffffff", foreground="#17202a", font=("Segoe UI", 10))
-        style.configure("Title.TLabel", background="#ffffff", foreground="#152238", font=("Segoe UI", 26, "bold"))
-        style.configure("Section.TLabel", background="#f6f7fb", foreground="#152238", font=("Segoe UI", 20, "bold"))
+        style.configure("Title.TLabel", background="#ffffff", foreground="#101828", font=("Segoe UI", 27, "bold"))
+        style.configure("Section.TLabel", background="#f4f6f8", foreground="#101828", font=("Segoe UI", 20, "bold"))
+        style.configure("CardTitle.TLabel", background="#ffffff", foreground="#101828", font=("Segoe UI", 15, "bold"))
         style.configure("Hint.TLabel", background="#ffffff", foreground="#5b677a", font=("Segoe UI", 10))
+        style.configure("SidebarTitle.TLabel", background="#111827", foreground="#ffffff", font=("Segoe UI", 19, "bold"))
+        style.configure("Sidebar.TLabel", background="#111827", foreground="#e5e7eb", font=("Segoe UI", 10, "bold"))
+        style.configure("SidebarMuted.TLabel", background="#111827", foreground="#9ca3af", font=("Segoe UI", 9, "bold"))
+        style.configure("MetricValue.TLabel", background="#f8fafc", foreground="#175cd3", font=("Segoe UI", 15, "bold"))
+        style.configure("MetricLabel.TLabel", background="#f8fafc", foreground="#667085", font=("Segoe UI", 9, "bold"))
         style.configure("Primary.TButton", font=("Segoe UI", 10, "bold"), padding=(14, 8))
         style.configure("TButton", font=("Segoe UI", 10, "bold"), padding=(12, 7))
         style.configure("TEntry", padding=8)
@@ -54,7 +62,7 @@ class DatStreamLite(tk.Tk):
         footer = ttk.Frame(self, padding=(18, 8))
         footer.pack(fill="x", side="bottom")
         ttk.Label(footer, textvariable=self.status).pack(side="left")
-        ttk.Label(footer, text="Clean build: no shared cookies, no session import.").pack(side="right")
+        ttk.Label(footer, text="Local sessions only.").pack(side="right")
 
     def _clear(self) -> None:
         for child in self.container.winfo_children():
@@ -65,36 +73,64 @@ class DatStreamLite(tk.Tk):
         panel.configure(borderwidth=1)
         return panel
 
+    def _metric_tile(self, parent: tk.Widget, value: str, label: str) -> ttk.Frame:
+        tile = ttk.Frame(parent, style="Metric.TFrame", padding=(14, 10))
+        ttk.Label(tile, text=value, style="MetricValue.TLabel").pack(anchor="w")
+        ttk.Label(tile, text=label, style="MetricLabel.TLabel").pack(anchor="w")
+        return tile
+
     def _show_login(self) -> None:
         self._clear()
         outer = ttk.Frame(self.container)
         outer.pack(fill="both", expand=True)
         outer.columnconfigure(0, weight=1)
-        outer.columnconfigure(2, weight=1)
+        outer.columnconfigure(1, weight=0)
+        outer.columnconfigure(2, weight=0)
+        outer.columnconfigure(3, weight=1)
         outer.rowconfigure(0, weight=1)
         outer.rowconfigure(2, weight=1)
 
+        side = ttk.Frame(outer, style="Sidebar.TFrame", padding=24)
+        side.grid(row=1, column=1, sticky="nsew", padx=(0, 14))
+        ttk.Label(side, text="Live Board", style="SidebarTitle.TLabel").pack(anchor="w", pady=(0, 18))
+        for text in ("DAT One", "DAT Power", "Speed Check", "Local Profile"):
+            chip = ttk.Label(side, text=text, style="Sidebar.TLabel", padding=(12, 9))
+            chip.pack(fill="x", pady=(0, 10))
+        ttk.Label(side, text=f"v{APP_VERSION}", style="SidebarMuted.TLabel").pack(anchor="sw", side="bottom")
+
         panel = self._panel(outer)
-        panel.grid(row=1, column=1, sticky="nsew")
+        panel.grid(row=1, column=2, sticky="nsew")
         panel.columnconfigure(1, weight=1)
 
         ttk.Label(panel, text=APP_NAME, style="Title.TLabel").grid(row=0, column=0, columnspan=2, sticky="w")
-        ttk.Label(panel, text="Authorized DAT workspace", style="Hint.TLabel").grid(
-            row=1, column=0, columnspan=2, sticky="w", pady=(4, 20)
+        ttk.Label(panel, text="Dispatch workspace", style="Hint.TLabel").grid(
+            row=1, column=0, columnspan=2, sticky="w", pady=(4, 14)
         )
-        ttk.Label(panel, text="Profile", style="Panel.TLabel").grid(row=2, column=0, sticky="w", pady=8)
-        ttk.Entry(panel, textvariable=self.username, width=38).grid(row=2, column=1, sticky="ew", pady=8)
-        ttk.Label(panel, text="Unlock key", style="Panel.TLabel").grid(row=3, column=0, sticky="w", pady=8)
-        ttk.Entry(panel, textvariable=self.unlock_key, show="*", width=38).grid(row=3, column=1, sticky="ew", pady=8)
+        metrics = ttk.Frame(panel, style="Panel.TFrame")
+        metrics.grid(row=2, column=0, columnspan=2, sticky="ew", pady=(0, 18))
+        for index, (value, label) in enumerate(
+            (
+                (str(len(self.config_data.get("streams", []))), "Streams"),
+                ("Local", "Profile"),
+                ("Tk", "Mode"),
+            )
+        ):
+            metrics.columnconfigure(index, weight=1)
+            self._metric_tile(metrics, value, label).grid(row=0, column=index, sticky="ew", padx=(0, 8))
+
+        ttk.Label(panel, text="Profile", style="Panel.TLabel").grid(row=3, column=0, sticky="w", pady=8)
+        ttk.Entry(panel, textvariable=self.username, width=38).grid(row=3, column=1, sticky="ew", pady=8)
+        ttk.Label(panel, text="Unlock key", style="Panel.TLabel").grid(row=4, column=0, sticky="w", pady=8)
+        ttk.Entry(panel, textvariable=self.unlock_key, show="*", width=38).grid(row=4, column=1, sticky="ew", pady=8)
         ttk.Button(panel, text="Continue", style="Primary.TButton", command=self._login).grid(
-            row=4, column=0, columnspan=2, sticky="ew", pady=(18, 12)
+            row=5, column=0, columnspan=2, sticky="ew", pady=(18, 12)
         )
         ttk.Label(
             panel,
-            text="This runnable fallback opens DAT in your system browser. Install PySide6 to use the embedded-browser version.",
+            text="This runnable fallback opens DAT in your system browser. Install PyQt6-WebEngine to use the embedded-browser version.",
             style="Hint.TLabel",
             wraplength=520,
-        ).grid(row=5, column=0, columnspan=2, sticky="w")
+        ).grid(row=6, column=0, columnspan=2, sticky="w")
 
     def _login(self) -> None:
         if not self.username.get().strip() or not self.unlock_key.get().strip():
@@ -107,8 +143,17 @@ class DatStreamLite(tk.Tk):
         self._clear()
         header = ttk.Frame(self.container)
         header.pack(fill="x", pady=(0, 18))
-        ttk.Label(header, text=f"Streams for {self.username.get().strip()}", style="Section.TLabel").pack(side="left")
+        ttk.Label(header, text=f"Workspace: {self.username.get().strip()}", style="Section.TLabel").pack(side="left")
         ttk.Button(header, text="Switch Profile", command=self._show_login).pack(side="right")
+
+        summary = ttk.Frame(self.container)
+        summary.pack(fill="x", pady=(0, 12))
+        for value, label in (
+            ("Local", "Profile"),
+            ("Direct", "Network"),
+            ("Browser", "Launch mode"),
+        ):
+            self._metric_tile(summary, value, label).pack(side="left", fill="x", expand=True, padx=(0, 10))
 
         grid = ttk.Frame(self.container)
         grid.pack(fill="both", expand=True)
@@ -147,7 +192,7 @@ class DatStreamLite(tk.Tk):
         if proxy.get("enabled"):
             proxy_line = f"Connection: {proxy.get('host')}:{proxy.get('port')}"
 
-        ttk.Label(card, text=label, style="Title.TLabel").grid(row=0, column=0, sticky="w")
+        ttk.Label(card, text=label, style="CardTitle.TLabel").grid(row=0, column=0, sticky="w")
         ttk.Label(card, text=description, style="Hint.TLabel", wraplength=420).grid(
             row=1, column=0, sticky="w", pady=(8, 4)
         )

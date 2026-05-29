@@ -17,7 +17,7 @@ The app opens a single-screen DAT workspace with:
 - stream configuration loaded from JSON
 - authorized proxy fields represented in config
 
-The full Qt/WebEngine implementation is in `dat_stream_studio/app.py`. The no-install fallback is `dat_stream_studio/lite_app.py`, which runs on standard Python and was packaged into the EXE.
+The full PyQt6/Qt WebEngine implementation is in `dat_stream_studio/app.py`. The no-install fallback is `dat_stream_studio/lite_app.py`, which runs on standard Python and was packaged into the EXE.
 
 ## Chrome Companion Extension
 

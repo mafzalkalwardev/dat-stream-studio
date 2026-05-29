@@ -37,12 +37,12 @@ try:
     QT_BINDING = "PySide6"
 except ImportError:
     try:
-        from PyQt5.QtCore import QUrl, Qt
-        from PyQt5.QtGui import QCloseEvent, QFont, QIcon
-        from PyQt5.QtNetwork import QNetworkProxy
-        from PyQt5.QtWebEngineWidgets import QWebEngineProfile, QWebEngineView
-        from PyQt5.QtWidgets import (
-            QAction,
+        from PyQt6.QtCore import QUrl, Qt
+        from PyQt6.QtGui import QAction, QCloseEvent, QFont, QIcon
+        from PyQt6.QtNetwork import QNetworkProxy
+        from PyQt6.QtWebEngineCore import QWebEngineProfile
+        from PyQt6.QtWebEngineWidgets import QWebEngineView
+        from PyQt6.QtWidgets import (
             QApplication,
             QCheckBox,
             QFrame,
@@ -63,13 +63,42 @@ except ImportError:
             QWidget,
         )
 
-        QT_BINDING = "PyQt5"
+        QT_BINDING = "PyQt6"
     except ImportError:
-        from lite_app import main
+        try:
+            from PyQt5.QtCore import QUrl, Qt
+            from PyQt5.QtGui import QCloseEvent, QFont, QIcon
+            from PyQt5.QtNetwork import QNetworkProxy
+            from PyQt5.QtWebEngineWidgets import QWebEngineProfile, QWebEngineView
+            from PyQt5.QtWidgets import (
+                QAction,
+                QApplication,
+                QCheckBox,
+                QFrame,
+                QGridLayout,
+                QGroupBox,
+                QHBoxLayout,
+                QLabel,
+                QLineEdit,
+                QMainWindow,
+                QMessageBox,
+                QPushButton,
+                QStackedWidget,
+                QStatusBar,
+                QTabWidget,
+                QTextEdit,
+                QToolBar,
+                QVBoxLayout,
+                QWidget,
+            )
 
-        if __name__ == "__main__":
-            raise SystemExit(main())
-        raise RuntimeError("Qt bindings are not installed. Run lite_app.py instead.")
+            QT_BINDING = "PyQt5"
+        except ImportError:
+            from lite_app import main
+
+            if __name__ == "__main__":
+                raise SystemExit(main())
+            raise RuntimeError("Qt bindings are not installed. Run lite_app.py instead.")
 
 
 APP_NAME = "DAT Stream Studio"
@@ -168,30 +197,46 @@ class AppConfig:
 
 
 class LoginPage(QWidget):
-    def __init__(self, on_login) -> None:
+    def __init__(self, on_login, config: AppConfig) -> None:
         super().__init__()
         self.on_login = on_login
+        self.config = config
         self.username = QLineEdit()
+        self.username.setPlaceholderText("dispatcher-01")
         self.password = QLineEdit()
+        self.password.setPlaceholderText("workspace key")
         self.password.setEchoMode(password_echo_mode())
         self.remember = QCheckBox("Remember profile name")
-        self.notes = QTextEdit()
-        self.notes.setReadOnly(True)
-        self.notes.setPlainText(
-            "This app opens DAT inside an embedded browser. "
-            "Sign in to DAT normally inside the browser tab. "
-            "No shared cookies or external tokens are loaded."
-        )
         self._build()
         self._load_profile()
 
     def _build(self) -> None:
         title = QLabel(APP_NAME)
         title.setObjectName("title")
-        subtitle = QLabel("Authorized DAT workspace")
+        subtitle = QLabel("Dispatch workspace")
         subtitle.setObjectName("subtitle")
 
+        metric_row = QHBoxLayout()
+        for label, value in [
+            ("Streams", str(len(self.config.streams))),
+            ("Profile", "Local"),
+            ("Mode", QT_BINDING),
+        ]:
+            tile = QFrame()
+            tile.setObjectName("metricTile")
+            tile_layout = QVBoxLayout(tile)
+            tile_layout.setContentsMargins(14, 12, 14, 12)
+            metric = QLabel(value)
+            metric.setObjectName("metricValue")
+            caption = QLabel(label)
+            caption.setObjectName("metricLabel")
+            tile_layout.addWidget(metric)
+            tile_layout.addWidget(caption)
+            metric_row.addWidget(tile)
+
         form = QGridLayout()
+        form.setHorizontalSpacing(14)
+        form.setVerticalSpacing(12)
         form.addWidget(QLabel("Profile"), 0, 0)
         form.addWidget(self.username, 0, 1)
         form.addWidget(QLabel("Unlock key"), 1, 0)
@@ -206,19 +251,46 @@ class LoginPage(QWidget):
         panel = QFrame()
         panel.setObjectName("loginPanel")
         panel_layout = QVBoxLayout(panel)
+        panel_layout.setContentsMargins(28, 28, 28, 28)
+        panel_layout.setSpacing(14)
         panel_layout.addWidget(title)
         panel_layout.addWidget(subtitle)
-        panel_layout.addSpacing(18)
-        panel_layout.addLayout(form)
+        panel_layout.addSpacing(8)
+        panel_layout.addLayout(metric_row)
         panel_layout.addSpacing(10)
+        panel_layout.addLayout(form)
+        panel_layout.addSpacing(8)
         panel_layout.addWidget(login)
-        panel_layout.addSpacing(12)
-        panel_layout.addWidget(self.notes)
+
+        side = QFrame()
+        side.setObjectName("sidePanel")
+        side_layout = QVBoxLayout(side)
+        side_layout.setContentsMargins(28, 28, 28, 28)
+        side_layout.setSpacing(16)
+        side_title = QLabel("Live Board")
+        side_title.setObjectName("sideTitle")
+        side_layout.addWidget(side_title)
+        for text in [
+            "DAT One",
+            "DAT Power",
+            "Speed Check",
+            "Local Profile",
+        ]:
+            chip = QLabel(text)
+            chip.setObjectName("statusChip")
+            side_layout.addWidget(chip)
+        side_layout.addStretch(1)
+        footer = QLabel("v" + APP_VERSION)
+        footer.setObjectName("sideFooter")
+        side_layout.addWidget(footer)
 
         wrapper = QVBoxLayout(self)
+        wrapper.setContentsMargins(40, 40, 40, 40)
         wrapper.addStretch(1)
         row = QHBoxLayout()
         row.addStretch(1)
+        row.setSpacing(18)
+        row.addWidget(side)
         row.addWidget(panel)
         row.addStretch(1)
         wrapper.addLayout(row)
@@ -257,13 +329,13 @@ class StreamPage(QWidget):
         self.on_open = on_open
         self.on_logout = on_logout
         self.layout = QVBoxLayout(self)
-        self.layout.setContentsMargins(24, 24, 24, 24)
-        self.layout.setSpacing(16)
+        self.layout.setContentsMargins(32, 28, 32, 28)
+        self.layout.setSpacing(18)
 
     def set_streams(self, username: str, config: AppConfig) -> None:
         self._clear()
         header_row = QHBoxLayout()
-        title = QLabel(f"Streams for {username}")
+        title = QLabel(f"Workspace: {username}")
         title.setObjectName("sectionTitle")
         logout = QPushButton("Switch Profile")
         logout.clicked.connect(self.on_logout)
@@ -276,6 +348,26 @@ class StreamPage(QWidget):
         hint.setObjectName("hint")
         self.layout.addWidget(hint)
 
+        quick_row = QHBoxLayout()
+        quick_row.setSpacing(12)
+        for title_text, detail in [
+            ("Session", "Persistent local browser"),
+            ("Network", "Direct or configured proxy"),
+            ("Browser", QT_BINDING + " WebEngine"),
+        ]:
+            tile = QFrame()
+            tile.setObjectName("summaryTile")
+            tile_layout = QVBoxLayout(tile)
+            tile_layout.setContentsMargins(16, 12, 16, 12)
+            headline = QLabel(title_text)
+            headline.setObjectName("summaryHeadline")
+            sub = QLabel(detail)
+            sub.setObjectName("summarySub")
+            tile_layout.addWidget(headline)
+            tile_layout.addWidget(sub)
+            quick_row.addWidget(tile)
+        self.layout.addLayout(quick_row)
+
         grid = QGridLayout()
         grid.setHorizontalSpacing(14)
         grid.setVerticalSpacing(14)
@@ -286,9 +378,13 @@ class StreamPage(QWidget):
         self.layout.addStretch(1)
 
     def _stream_card(self, stream: StreamConfig) -> QGroupBox:
-        box = QGroupBox(stream.label)
+        box = QGroupBox("")
         box.setObjectName("streamCard")
         body = QVBoxLayout(box)
+        body.setContentsMargins(18, 18, 18, 18)
+        body.setSpacing(10)
+        title = QLabel(stream.label)
+        title.setObjectName("cardTitle")
         desc = QLabel(stream.description or stream.url)
         desc.setWordWrap(True)
         desc.setObjectName("hint")
@@ -299,6 +395,7 @@ class StreamPage(QWidget):
         open_button = QPushButton("Open")
         open_button.setObjectName("primary")
         open_button.clicked.connect(lambda: self.on_open(stream))
+        body.addWidget(title)
         body.addWidget(desc)
         body.addWidget(url)
         body.addWidget(proxy_label)
@@ -337,6 +434,7 @@ class BrowserWorkspace(QWidget):
         self.toolbar = QToolBar("Navigation")
         self.toolbar.setObjectName("mainToolbar")
         self.status = QLabel("No stream open")
+        self.status.setObjectName("browserStatus")
         self._build()
 
     def _build(self) -> None:
@@ -346,7 +444,7 @@ class BrowserWorkspace(QWidget):
         home = QAction("Home", self)
         new_tab = QAction("New Tab", self)
         speed = QAction("Speed Test", self)
-        clear_data = QAction("Clear Browser Data", self)
+        clear_data = QAction("Clear Data", self)
 
         back.triggered.connect(lambda: self.current_browser().back() if self.current_browser() else None)
         forward.triggered.connect(lambda: self.current_browser().forward() if self.current_browser() else None)
@@ -460,7 +558,7 @@ class MainWindow(QMainWindow):
         self.username = ""
         self.current_stream: StreamConfig | None = None
         self.stack = QStackedWidget()
-        self.login_page = LoginPage(self.login)
+        self.login_page = LoginPage(self.login, self.config)
         self.stream_page = StreamPage(self.open_stream, self.logout)
         self.workspace = BrowserWorkspace(self)
         self.stack.addWidget(self.login_page)
@@ -507,85 +605,160 @@ class MainWindow(QMainWindow):
 def load_stylesheet() -> str:
     return """
     QWidget {
-        background: #f6f7fb;
+        background: #f4f6f8;
         color: #17202a;
         font-family: Segoe UI, Arial, sans-serif;
         font-size: 13px;
     }
     #title {
-        font-size: 32px;
+        font-size: 34px;
         font-weight: 700;
-        color: #152238;
+        color: #101828;
     }
     #subtitle {
         font-size: 15px;
-        color: #506070;
+        color: #667085;
     }
     #sectionTitle {
-        font-size: 24px;
+        font-size: 25px;
         font-weight: 700;
+        color: #101828;
     }
     #hint {
-        color: #5b677a;
+        color: #667085;
     }
     #mono {
         font-family: Consolas, monospace;
-        color: #32445a;
+        color: #344054;
+        background: #f2f4f7;
+        border-radius: 6px;
+        padding: 7px;
     }
     #loginPanel {
         background: #ffffff;
-        border: 1px solid #dbe1ea;
+        border: 1px solid #d0d5dd;
         border-radius: 8px;
         min-width: 520px;
         max-width: 620px;
-        padding: 18px;
+    }
+    #sidePanel {
+        background: #111827;
+        border: 1px solid #1f2937;
+        border-radius: 8px;
+        min-width: 260px;
+        max-width: 300px;
+    }
+    #sideTitle {
+        background: transparent;
+        color: #ffffff;
+        font-size: 24px;
+        font-weight: 700;
+    }
+    #sideFooter {
+        background: transparent;
+        color: #9ca3af;
+        font-weight: 700;
+    }
+    #statusChip {
+        background: #1f2937;
+        border: 1px solid #374151;
+        border-radius: 6px;
+        color: #e5e7eb;
+        padding: 10px 12px;
+        font-weight: 700;
+    }
+    #metricTile, #summaryTile {
+        background: #f8fafc;
+        border: 1px solid #e4e7ec;
+        border-radius: 8px;
+    }
+    #metricValue {
+        background: transparent;
+        color: #175cd3;
+        font-size: 20px;
+        font-weight: 800;
+    }
+    #metricLabel {
+        background: transparent;
+        color: #667085;
+        font-size: 12px;
+        font-weight: 700;
+    }
+    #summaryHeadline {
+        background: transparent;
+        color: #101828;
+        font-size: 15px;
+        font-weight: 800;
+    }
+    #summarySub {
+        background: transparent;
+        color: #667085;
+        font-size: 12px;
+    }
+    #cardTitle {
+        background: transparent;
+        color: #101828;
+        font-size: 20px;
+        font-weight: 800;
     }
     QGroupBox#streamCard {
         background: #ffffff;
-        border: 1px solid #dbe1ea;
+        border: 1px solid #d0d5dd;
         border-radius: 8px;
-        padding: 18px;
         min-width: 360px;
-        min-height: 150px;
-        font-weight: 700;
+        min-height: 180px;
     }
     QLineEdit, QTextEdit {
         background: #ffffff;
-        border: 1px solid #c9d3df;
+        border: 1px solid #d0d5dd;
         border-radius: 6px;
-        padding: 8px;
+        padding: 10px;
+        selection-background-color: #175cd3;
+    }
+    QLineEdit:focus {
+        border: 1px solid #175cd3;
     }
     QPushButton {
-        background: #e8edf5;
-        border: 1px solid #cbd5e1;
+        background: #ffffff;
+        border: 1px solid #d0d5dd;
         border-radius: 6px;
-        color: #17202a;
-        padding: 8px 12px;
-        font-weight: 600;
+        color: #344054;
+        padding: 9px 14px;
+        font-weight: 700;
     }
     QPushButton:hover {
-        background: #dfe8f5;
+        background: #f9fafb;
+        border-color: #98a2b3;
     }
     QPushButton#primary {
-        background: #2266cc;
-        border-color: #1e5bb6;
+        background: #175cd3;
+        border-color: #175cd3;
         color: #ffffff;
     }
     QPushButton#primary:hover {
-        background: #1f5fbf;
+        background: #1849a9;
+        border-color: #1849a9;
     }
     QToolBar#mainToolbar {
         background: #ffffff;
-        border-bottom: 1px solid #dbe1ea;
+        border-bottom: 1px solid #d0d5dd;
         spacing: 6px;
-        padding: 6px;
+        padding: 8px;
+    }
+    #browserStatus {
+        background: #f2f4f7;
+        color: #344054;
+        border: 1px solid #e4e7ec;
+        border-radius: 6px;
+        padding: 7px 10px;
+        font-weight: 700;
     }
     QTabWidget::pane {
         border: 0;
     }
     QTabBar::tab {
-        background: #e8edf5;
-        border: 1px solid #cbd5e1;
+        background: #eaecf0;
+        border: 1px solid #d0d5dd;
         border-bottom: 0;
         padding: 8px 14px;
         margin-right: 2px;
@@ -599,19 +772,27 @@ def load_stylesheet() -> str:
 
 
 def password_echo_mode():
-    return getattr(QLineEdit, "Password", QLineEdit.EchoMode.Password)
+    if hasattr(QLineEdit, "Password"):
+        return QLineEdit.Password
+    return QLineEdit.EchoMode.Password
 
 
 def message_box_yes():
-    return getattr(QMessageBox, "Yes", QMessageBox.StandardButton.Yes)
+    if hasattr(QMessageBox, "Yes"):
+        return QMessageBox.Yes
+    return QMessageBox.StandardButton.Yes
 
 
 def no_proxy_type():
-    return getattr(QNetworkProxy, "NoProxy", QNetworkProxy.ProxyType.NoProxy)
+    if hasattr(QNetworkProxy, "NoProxy"):
+        return QNetworkProxy.NoProxy
+    return QNetworkProxy.ProxyType.NoProxy
 
 
 def http_proxy_type():
-    return getattr(QNetworkProxy, "HttpProxy", QNetworkProxy.ProxyType.HttpProxy)
+    if hasattr(QNetworkProxy, "HttpProxy"):
+        return QNetworkProxy.HttpProxy
+    return QNetworkProxy.ProxyType.HttpProxy
 
 
 def high_dpi_attribute(name: str):
@@ -633,6 +814,8 @@ def main() -> int:
     app.setStyleSheet(load_stylesheet())
     window = MainWindow()
     window.show()
+    if hasattr(app, "exec"):
+        return app.exec()
     return app.exec_()
 
 
