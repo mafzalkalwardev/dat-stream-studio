@@ -1,0 +1,23 @@
+{
+  "manifest_version": 3,
+  "name": "DAT Stream Studio Companion",
+  "description": "A clean DAT helper for opening authorized DAT pages and managing local DAT browser data.",
+  "version": "1.0.0",
+  "action": {
+    "default_title": "DAT Studio",
+    "default_popup": "popup.html"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "permissions": [
+    "cookies",
+    "storage",
+    "tabs"
+  ],
+  "host_permissions": [
+    "https://*.dat.com/*",
+    "https://one.dat.com/*",
+    "https://power.dat.com/*"
+  ]
+}

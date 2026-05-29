@@ -1,0 +1,46 @@
+{
+  "app_name": "DAT Stream Studio",
+  "version": "1.0.0",
+  "status_line": "Ready - browser sessions stay local to this machine.",
+  "streams": [
+    {
+      "id": "dat-one",
+      "label": "DAT One",
+      "url": "https://one.dat.com",
+      "description": "Open DAT One with your normal DAT login.",
+      "proxy": {
+        "enabled": false,
+        "host": "",
+        "port": 0,
+        "username": "",
+        "password": ""
+      }
+    },
+    {
+      "id": "dat-power",
+      "label": "DAT Power",
+      "url": "https://power.dat.com",
+      "description": "Open DAT Power with your normal DAT login.",
+      "proxy": {
+        "enabled": false,
+        "host": "",
+        "port": 0,
+        "username": "",
+        "password": ""
+      }
+    },
+    {
+      "id": "speed-test",
+      "label": "Connection Speed",
+      "url": "https://fast.com/",
+      "description": "Check the active connection from inside the app.",
+      "proxy": {
+        "enabled": false,
+        "host": "",
+        "port": 0,
+        "username": "",
+        "password": ""
+      }
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>DAT Studio</title>
+    <link rel="stylesheet" href="popup.css">
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>DAT Studio</h1>
+        <p id="status">Ready</p>
+      </header>
+
+      <section class="actions">
+        <button data-url="https://one.dat.com">DAT One</button>
+        <button data-url="https://power.dat.com">DAT Power</button>
+        <button data-url="https://fast.com/">Speed</button>
+      </section>
+
+      <section class="panel">
+        <div class="metric">
+          <span>DAT cookies</span>
+          <strong id="cookieCount">-</strong>
+        </div>
+        <button id="refresh">Refresh</button>
+        <button id="clear" class="danger">Clear DAT Cookies</button>
+      </section>
+
+      <section class="panel">
+        <label for="streamLabel">Stream label</label>
+        <input id="streamLabel" placeholder="DAT One - West">
+        <label for="streamUrl">Stream URL</label>
+        <input id="streamUrl" placeholder="https://one.dat.com">
+        <button id="saveStream">Save Shortcut</button>
+      </section>
+
+      <section class="panel">
+        <h2>Saved Shortcuts</h2>
+        <div id="streams"></div>
+      </section>
+    </main>
+
+    <script src="popup.js"></script>
+  </body>
+</html>

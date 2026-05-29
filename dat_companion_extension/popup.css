@@ -1,0 +1,123 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  width: 340px;
+  margin: 0;
+  background: #f6f7fb;
+  color: #17202a;
+  font: 13px/1.45 "Segoe UI", Arial, sans-serif;
+}
+
+main {
+  padding: 14px;
+}
+
+header {
+  margin-bottom: 12px;
+}
+
+h1 {
+  margin: 0;
+  font-size: 22px;
+}
+
+h2 {
+  margin: 0 0 8px;
+  font-size: 14px;
+}
+
+p {
+  margin: 4px 0 0;
+  color: #5b677a;
+}
+
+.actions {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.panel {
+  background: #ffffff;
+  border: 1px solid #dbe1ea;
+  border-radius: 8px;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+
+.metric {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.metric strong {
+  font-size: 20px;
+}
+
+label {
+  display: block;
+  margin: 8px 0 4px;
+  color: #4b5565;
+  font-weight: 600;
+}
+
+input {
+  width: 100%;
+  border: 1px solid #c9d3df;
+  border-radius: 6px;
+  padding: 8px;
+}
+
+button {
+  width: 100%;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  background: #e8edf5;
+  color: #17202a;
+  cursor: pointer;
+  font-weight: 700;
+  margin-top: 8px;
+  padding: 8px;
+}
+
+button:hover {
+  background: #dfe8f5;
+}
+
+.actions button {
+  margin-top: 0;
+}
+
+.danger {
+  background: #fff0f0;
+  border-color: #f2b8b8;
+  color: #a32323;
+}
+
+.shortcut {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 8px;
+  align-items: center;
+  border-top: 1px solid #edf1f6;
+  padding-top: 8px;
+  margin-top: 8px;
+}
+
+.shortcut span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.shortcut button {
+  width: auto;
+  margin: 0;
+  padding: 6px 10px;
+}
