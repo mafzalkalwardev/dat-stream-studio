@@ -86,4 +86,3 @@ Edit `dat_stream_studio/sample_streams.json`, or create `dat_stream_studio/strea
 ## Screenshots
 
 ![dat-stream-studio dashboard](docs/screenshots/app.png)
-
