@@ -82,3 +82,8 @@ cd dat_stream_studio
 ## Stream Configuration
 
 Edit `dat_stream_studio/sample_streams.json`, or create `dat_stream_studio/streams.local.json` for local-only stream/proxy settings.
+
+## Screenshots
+
+![dat-stream-studio dashboard](docs/screenshots/app.png)
+
